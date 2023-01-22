@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
 import 'package:quizzler/quiz_brain.dart';
 
 QuizBrain quizBrain = QuizBrain();
@@ -30,25 +32,50 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   List<Icon> scoreKeeper = [];
 
-  void checkAnswer(bool userPickedAnswer) {
-    bool correctAnswer = quizBrain.getCorrectAnswer();
-    Icon icon;
+  Future<bool> showAlert() {
+    return Alert(
+      context: context,
+      title: "Finished!",
+      desc: "You've reached the end of the quiz.",
+      buttons: [
+        DialogButton(
+          child: Text(
+            "CANCEL",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    ).show();
+  }
 
+  Icon setIcon(bool correctAnswer, bool userPickedAnswer) {
     if (correctAnswer == userPickedAnswer) {
-      icon = Icon(
+      return Icon(
         Icons.check,
         color: Colors.green,
       );
-    } else {
-      icon = Icon(
+    }
+    return Icon(
         Icons.close,
         color: Colors.red,
       );
-    }
+  }
 
-    return setState(() {
-      quizBrain.nextQuestion();
-      scoreKeeper.add(icon);
+  void checkAnswer(bool userPickedAnswer) {
+    bool correctAnswer = quizBrain.getCorrectAnswer();
+
+    setState(() {
+      if (quizBrain.isFinished()) {
+        showAlert();
+        quizBrain.reset();
+        scoreKeeper = [];
+      } else {
+        quizBrain.nextQuestion();
+        scoreKeeper.add(
+          setIcon(correctAnswer, userPickedAnswer),
+        );
+      }
     });
   }
 
